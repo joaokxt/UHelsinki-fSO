@@ -20,7 +20,7 @@ Using Express library
 
 const express = require('express') // ==> Equivalent to import
 const app = express()
-const cors = require('cors') // Necessary to compy with Same origin policy. Uses CORS mechanism (Cross Origin Resource Sharing)
+const cors = require('cors') // Necessary to comply with Same origin policy. Uses CORS mechanism (Cross Origin Resource Sharing)
 
 app.use(express.json())
 app.use(cors())
