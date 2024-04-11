@@ -18,10 +18,10 @@ const app = http.createServer((request, response) => {
 Using Express library
 */
 
+require('dotenv').config() // Allows to use .env file to save environment variables
 const express = require('express') // ==> Equivalent to import
 const app = express()
 const cors = require('cors') // Necessary to comply with Same origin policy. Uses CORS mechanism (Cross Origin Resource Sharing)
-
 
 app.use(express.json())
 app.use(cors())
@@ -38,29 +38,22 @@ const requestLogger = (request, response, next) => {
 
 app.use(requestLogger)
 
-let notes = [
-    {
-        id: 1,
-        content: "HTML is easy",
-        important: true
-    },
-    {
-        id: 2,
-        content: "Browser can execute only Javascript",
-        important: false
-    },
-    {    
-        id: 3,    
-        content: "GET and POST are the most important methods of HTTP protocol",    
-        important: true  
-    }
-]
+const mongoose = require('mongoose')
+const password = process.argv[2]
+const url = 
+
+mongoose.set('strictQuery', false)
+mongoose.connect(url)
+
+const Note = require('./models/note')
 
 // Define 2 routes to the application
 // Event handlers to handle HTTP GET requests
 
 app.get('/api/notes', (request, response) => {
-    response.json(notes)
+    Note.find({}).then(notes => {
+        response.json(notes)
+    })
 })
 
 app.get('/api/notes/:id', (request, response) => {
@@ -75,39 +68,29 @@ app.get('/api/notes/:id', (request, response) => {
     
 })
 
-const generateId = () => {
-    const maxId = notes.length > 0
-        ? Math.max(...notes.map(n => n.id))
-        : 0
-    return maxId + 1
-}
-
 app.post('/api/notes', (request, response) => {
     const body = request.body
     
-    if(!body.content){
+    if(body.content === undefined){
         return response.status(400).json({
             error: "content missing"
         })
     }
 
-    const note = {
+    const note = new Note({
         content: body.content,
-        important: Boolean(body.important) || false,
-        id: generateId(),
-    }
+        important: body.important || false,
+    })
 
-    notes = notes.concat(note)
-
-    console.log(note)
-    response.json(note)
+    note.save().then(savedNote => {
+        response.json(savedNote)
+    })
 })
 
 app.delete('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id)
-    notes = notes.filter(note => note.id !== id)
-
-    response.status(204).end()
+    Note.findById(request.params.id).then(note => {
+        response.json(note)
+    })
 })
 
 const unknownEndpoint = (request, response) => {
@@ -116,7 +99,7 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint)
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 }) // This binds the server to listen to the defined port
