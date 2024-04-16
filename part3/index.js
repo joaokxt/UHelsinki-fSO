@@ -12,20 +12,18 @@ const app = http.createServer((request, response) => {
 --> Event handler is registered and is called at every HTTP request
 --> The request is responded with a 200 (OK) and sets the content type
 --> The content of the response is defined with .end(). This func expects a string
+
+
+Using Express library:
 */
 
-/*
-Using Express library
-*/
+const app = require('./app')
+const config = require('./utils/config')
+const logger = require('./utils/logger')
 
-require('dotenv').config() // Allows to use .env file to save environment variables
-const express = require('express') // ==> Equivalent to import
-const app = express()
-const cors = require('cors') // Necessary to comply with Same origin policy. Uses CORS mechanism (Cross Origin Resource Sharing)
-
-app.use(express.static('dist')) // Allows express to show static content in '/dist'
-app.use(express.json())
-app.use(cors())
+app.listen(config.PORT, () => {
+    logger.info(`Server running on port ${config.PORT}`)
+})
 
 // Middleware
 const requestLogger = (request, response, next) => {
@@ -39,71 +37,7 @@ app.use(requestLogger)
 
 const Note = require('./models/note')
 
-// Define 2 routes to the application
-// Event handlers to handle HTTP GET requests
 
-app.get('/api/notes', (request, response) => {
-    Note.find({}).then(notes => {
-        response.json(notes)
-    })
-})
-
-app.get('/api/notes/:id', (request, response, next) => {
-    Note.findById(request.params.id)
-        .then(note => {
-            if(note) {
-               response.json(note) 
-            } else {
-                response.status(404).end()
-            }
-        })
-        .catch(error => next(error))
-    
-})
-
-app.post('/api/notes', (request, response, next) => {
-    const body = request.body
-    
-    if(body.content === undefined){
-        return response.status(400).json({
-            error: "content missing"
-        })
-    }
-
-    const note = new Note({
-        content: body.content,
-        important: body.important || false,
-    })
-
-    note.save()
-        .then(savedNote => {
-            response.json(savedNote)
-        })
-        .catch(error => next(error))
-})
-
-app.put('/api/notes/:id', (request, response, next) => {
-    const { content, important } = request.body
-
-    // findByIdAndUpdate() does not run schema validations by default
-    Note.findByIdAndUpdate(
-        request.params.id,
-        { content, important }, 
-        { new: true, runValidators: true, context: 'query'}
-    )
-        .then(updatedNote => {
-            response.json(updatedNote)
-        })
-        .catch(error => next(error))
-})
-
-app.delete('/api/notes/:id', (request, response) => {
-    Note.findByIdAndDelete(request.params.id)
-        .then(result => {
-            response.status(204).end()
-        })
-        .catch(error => next(error))
-})
 
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
