@@ -26,11 +26,13 @@ app.use(cors())
 app.use(express.static('dist')) // Allows express to show static content in '/dist'
 app.use(express.json()) // JSON parser
 
+app.use('/api/notes', notesRouter) // Takes router from controller 
+
 app.use(middleware.requestLogger)
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
 
-app.use('/api/notes', notesRouter) // Takes router from controller 
+
 
 module.exports = app
 

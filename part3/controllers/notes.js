@@ -7,10 +7,9 @@ const Note = require('../models/note')
 // Define 2 routes to the application
 // Event handlers to handle HTTP GET requests
 
-notesRouter.get('/', (request, response) => {
-    Note.find({}).then(notes => {
-        response.json(notes)
-    })
+notesRouter.get('/', async (request, response) => {
+    const notes = await Note.find({})
+    response.json(notes)
 })
 
 notesRouter.get('/:id', (request, response, next) => {

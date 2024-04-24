@@ -4,11 +4,15 @@
 // This is simpler
 
 const info = (...params) => {
-    console.log(...params)
+    if(process.env.NODE_ENV !== 'test') {
+        console.log(...params)
+    }
 } // Normal log messages
 
 const error = (...params) => {
-    console.error(...params)
+    if(process.env.NODE_ENV !== 'test') {
+        console.error(...params)
+    }
 } // Error messages
 
 module.exports = {
