@@ -16,15 +16,11 @@ notesRouter.get('/', async (request, response) => {
 
 notesRouter.get('/:id', async (request, response, next) => {
 
-    try {
-        const note = await Note.findById(request.params.id)
-        if (note) {
-            response.json(note)
-        } else {
-            response.status(404).end()
-        }
-    } catch(exception) {
-        next(exception)
+    const note = await Note.findById(request.params.id)
+    if (note) {
+        response.json(note)
+    } else {
+        response.status(404).end()
     }
 
     /*Note.findById(request.params.id)
@@ -41,12 +37,6 @@ notesRouter.get('/:id', async (request, response, next) => {
 
 notesRouter.post('/', async (request, response, next) => {
     const body = request.body
-    
-    /* if(body.content === undefined){
-        return response.status(400).json({
-            error: "content missing"
-        })
-    }*/
 
     const note = new Note({
         content: body.content,
@@ -55,13 +45,9 @@ notesRouter.post('/', async (request, response, next) => {
 
     // With async/await it is recommended to handle errors with try/catch
 
-    try {
-        const savedNote = await note.save()
-        response.status(201).json(savedNote)
-    } catch(exception) {
-        next(exception)
-    }
-    
+    const savedNote = await note.save()
+    response.status(201).json(savedNote)
+
 })
 
 notesRouter.put('/:id', (request, response, next) => {
@@ -81,18 +67,9 @@ notesRouter.put('/:id', (request, response, next) => {
 
 notesRouter.delete('/:id', async (request, response) => {
     
-    try {
-        await Note.findByIdAndDelete(request.params.id)
-        response.status(204).end()
-    } catch(exception) {
-        next(exception)
-    }
+    await Note.findByIdAndDelete(request.params.id)
+    response.status(204).end()
    
-    /*Note.findByIdAndDelete(request.params.id)
-        .then(result => {
-            response.status(204).end()
-        })
-        .catch(error => next(error))*/
 })
 
 module.exports = notesRouter

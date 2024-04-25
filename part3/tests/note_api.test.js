@@ -20,15 +20,25 @@ const api = supertest(app)
 beforeEach(async () => {
     // Clean DB
     await Note.deleteMany({})
+    console.log('cleared')
 
-    let noteObject = new Note(helper.initialNotes[0])
-    await noteObject.save()
+    // await inside forEach loop => beforeEach doesn't wait for it (another scope)
+    /*helper.initialNotes.forEach(async (note) => {
+        let noteObject = new Note(note)
+        await noteObject.save()
+        console.log('saved')
+    })*/
 
-    noteObject = new Note(helper.initialNotes[1])
-    await noteObject.save()
+    const noteObjects = helper.initialNotes
+        .map(note => new Note(note))
+    const promiseArray = noteObjects.map(note => note.save())
+    await Promise.all(promiseArray) // Array of promises into single promise
+    
+    console.log('done')
 })
 
 test('notes are returned as json', async () => {
+    console.log('entered test')
     // Our test makes an HTTP GET request to the api/notes url and verifies that the request is responded to with the status code 200. 
     // The test also verifies that the Content-Type header is set to application/json, indicating that the data is in the desired format.
     await api

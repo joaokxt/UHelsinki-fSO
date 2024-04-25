@@ -1,6 +1,7 @@
 const config = require('./utils/config')
-
 const express = require('express')
+
+require('express-async-errors') // Allows to error handle async functions without try/catch
 const app = express()
 
 const cors = require('cors') // Necessary to comply with Same origin policy. Uses CORS mechanism (Cross Origin Resource Sharing)
