@@ -1,12 +1,15 @@
 const config = require('./utils/config')
 const express = require('express')
 
-require('express-async-errors') // Allows to error handle async functions without try/catch
 const app = express()
+require('express-async-errors') // Allows to error handle async functions without try/catch
+
 
 const cors = require('cors') // Necessary to comply with Same origin policy. Uses CORS mechanism (Cross Origin Resource Sharing)
 
 const notesRouter = require('./controllers/notes')
+const usersRouter = require('./controllers/users')
+
 const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
 const mongoose = require('mongoose')
@@ -27,9 +30,12 @@ app.use(cors())
 app.use(express.static('dist')) // Allows express to show static content in '/dist'
 app.use(express.json()) // JSON parser
 
-app.use('/api/notes', notesRouter) // Takes router from controller 
-
 app.use(middleware.requestLogger)
+
+app.use('/api/notes', notesRouter) // Takes router from controller 
+app.use('/api/users', usersRouter)
+
+
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
 

@@ -15,29 +15,31 @@ const helper = require('./test_helper')
 
 const api = supertest(app)
 
+// This runs before the tests and sets our DB up
+beforeEach(async () => {
+    // Clean DB
+    await Note.deleteMany({})
+    console.log('cleared')
+
+    // await inside forEach loop => beforeEach doesn't wait for it (another scope)
+    /*helper.initialNotes.forEach(async (note) => {
+        let noteObject = new Note(note)
+        await noteObject.save()
+        console.log('saved')
+    })*/
+
+    /*const noteObjects = helper.initialNotes
+        .map(note => new Note(note))
+    const promiseArray = noteObjects.map(note => note.save())
+    await Promise.all(promiseArray) // Array of promises into single promise
+    */
+
+    await Note.insertMany(helper.initialNotes)
+    console.log('done')
+})
+
 
 describe('when there is initially some notes saved', () => {
-    // This runs before the tests and sets our DB up
-    beforeEach(async () => {
-        // Clean DB
-        await Note.deleteMany({})
-        console.log('cleared')
-
-        // await inside forEach loop => beforeEach doesn't wait for it (another scope)
-        /*helper.initialNotes.forEach(async (note) => {
-            let noteObject = new Note(note)
-            await noteObject.save()
-            console.log('saved')
-        })*/
-
-        const noteObjects = helper.initialNotes
-            .map(note => new Note(note))
-        const promiseArray = noteObjects.map(note => note.save())
-        await Promise.all(promiseArray) // Array of promises into single promise
-
-        console.log('done')
-    })
-
     test('notes are returned as json', async () => {
         console.log('entered test')
         // Our test makes an HTTP GET request to the api/notes url and verifies that the request is responded to with the status code 200. 
@@ -95,6 +97,20 @@ describe('viewing a specific note', () => {
 })
 
 describe('addition of a new note', () => {
+    test('note without content is not added', async () => {
+        const newNote = {
+            important: true
+        }
+    
+        await api
+            .post('/api/notes')
+            .send(newNote)
+            .expect(400)
+    
+        const notesAtEnd = await helper.notesInDb()
+        assert.strictEqual(notesAtEnd.length, helper.initialNotes.length)
+    })
+    
     test('a valid note can be added', async () => {
         const newNote = {
             content: 'async/await simplifies making async calls',
@@ -114,21 +130,6 @@ describe('addition of a new note', () => {
         const contents = notesAtEnd.map(n => n.content)
         assert(contents.includes('async/await simplifies making async calls'))
     })
-    
-    test('note without content is not added', async () => {
-        const newNote = {
-            important: true
-        }
-    
-        await api
-            .post('/api/notes')
-            .send(newNote)
-            .expect(400)
-    
-        const notesAtEnd = await helper.notesInDb()
-        assert.strictEqual(notesAtEnd.length, helper.initialNotes.length)
-    })
-    
 })
 
 describe('deletion of a note', () => {
