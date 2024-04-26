@@ -3,6 +3,7 @@
 const notesRouter = require('express').Router()
 const Note = require('../models/note')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 // Define 2 routes to the application
 // Event handlers to handle HTTP GET requests
@@ -24,21 +25,29 @@ notesRouter.get('/:id', async (request, response, next) => {
         response.status(404).end()
     }
 
-    /*Note.findById(request.params.id)
-        .then(note => {
-            if(note) {
-               response.json(note) 
-            } else {
-                response.status(404).end()
-            }
-        })
-        .catch(error => next(error))
-    */
 })
+
+const getTokenFrom = request => {
+    const authorization = request.get('authorization')
+    if(authorization && authorization.startsWith('Bearer ')) {
+        return authorization.replace('Bearer ', '')
+    }
+
+    return null
+}
 
 notesRouter.post('/', async (request, response, next) => {
     const body = request.body
-    const user = await User.findById(body.userId)
+
+    // Isolate token from auth header
+    const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET)
+    
+    // Check validity
+    if(!decodedToken.id) {
+        return response.status(401).json({ error: 'token invalid' })
+    }
+
+    const user = await User.findById(decodedToken.id)
 
     const note = new Note({
         content: body.content,
