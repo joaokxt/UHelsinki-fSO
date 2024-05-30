@@ -1,22 +1,24 @@
 import React from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import noteService from './services/notes'
 import loginService from './services/login'
 
 import Note from'./components/Note'
 import Notification from './components/Notification'
 import Footer from './components/Footer'
+import LoginForm from './components/LoginForm'
+import NoteForm from './components/NoteForm'
+import Togglable from './components/Togglable'
 
 const App = () => {
   const [notes, setNotes] = useState([])
-  const [newNote, setNewNote] = useState( 
-    'A new note...'
-  )
+
   const [showAll, setShowAll] = useState(true)
   const [errorMessage, setErrorMessage] = useState(null)
   const [username, setUsername] = useState(null)
   const [password, setPassword] = useState(null)
   const [user, setUser] = useState(null)
+  const [loginVisible, setLoginVisible] = useState(false)
 
   useEffect(() => {
     noteService
@@ -35,19 +37,15 @@ const App = () => {
     }
   }, [])
 
-  const addNote = (event) => {
-    event.preventDefault() //Prevents default action of submission (like reloading)
-    const noteObject = {
-      content: newNote,
-      important: Math.random() < 0.5,
-    }
+  const noteFormRef = useRef()
 
+  const addNote = (noteObject) => {
+    noteFormRef.current.toggleVisibility()
     noteService
       .create(noteObject)
       .then(returnedNote => {
         setNotes(notes.concat(returnedNote))
-        setNewNote('')
-      })   
+      })
   }
 
   const toggleImportanceOf = (id) => {
@@ -69,10 +67,6 @@ const App = () => {
         setNotes(notes.filter(n => n.id !== id))
       })
 
-  }
-
-  const handleNoteChange = (event) => {
-    setNewNote(event.target.value)
   }
 
   const notesToShow = showAll ? notes : notes.filter(note => note.important === true)
@@ -103,64 +97,44 @@ const App = () => {
 
   }
 
-  const loginForm = () => {
-    <form onSubmit={handleLogin} >
-      <div>
-        Username
-        <input
-          type="text"
-          value={username}
-          name="Username"
-          onChange={({ target }) => setUsername(target.value)}
-        />
-      </div>
-      <div>
-        Password
-        <input
-          type="text"
-          value={password}
-          name="Password"
-          onChange={({ target }) => setPassword(target.value)}
-        />
-      </div>
-      <button type="submit">Login</button>
-    </form>
-  }
-
-  const noteForm = () => {
-    <form onSubmit={addNote}>
-        <input 
-          value={newNote}
-          onChange={handleNoteChange}
-        />
-        <button type="submit">Save</button>
-      </form>
-  }
-
   return (
     <div>
       <h1>Notes</h1>
       <Notification message={errorMessage} />
-      
-      {user === null ?
-        loginForm() :
+
+      {user === null
+        ?
+        <Togglable buttonLabel="Log-in">
+          <LoginForm
+            username={username}
+            password={password}
+            handleUsernameChange={({ target }) => setUsername(target.value)}
+            handlePasswordChange={({ target }) => setPassword(target.value)}
+            handleSubmit={handleLogin}
+          />
+        </Togglable>
+        :
         <div>
           <p>{user.name} logged-in</p>
-          {noteForm()}
+          <Togglable buttonLabel="New note" ref={noteFormRef}>
+            <NoteForm
+              createNote={addNote}
+            />
+          </Togglable>
         </div>
       }
 
       <div>
         <button onClick={() => setShowAll(!showAll)}>
-            Show {showAll ? 'important notes' : 'all notes'}
+          Show {showAll ? 'important notes' : 'all notes'}
         </button>
       </div>
-      <ul> 
+      <ul>
         {notesToShow.map(note => //Do not use index as Id. React uses id to keep track of elements in DOM hierarchy
-          <Note 
+          <Note
             key={note.id}
-            note={note} 
-            toggleImportance={()=>toggleImportanceOf(note.id)}
+            note={note}
+            toggleImportance={() => toggleImportanceOf(note.id)}
           />
         )}
       </ul>
