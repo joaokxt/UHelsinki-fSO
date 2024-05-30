@@ -15,10 +15,9 @@ const App = () => {
 
   const [showAll, setShowAll] = useState(true)
   const [errorMessage, setErrorMessage] = useState(null)
-  const [username, setUsername] = useState(null)
-  const [password, setPassword] = useState(null)
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
-  const [loginVisible, setLoginVisible] = useState(false)
 
   useEffect(() => {
     noteService
@@ -97,6 +96,13 @@ const App = () => {
 
   }
 
+  const handleLogout = async (event) => {
+    event.preventDefault()
+    noteService.clearToken()
+    setUser(null)
+    localStorage.clear()
+  }
+
   return (
     <div>
       <h1>Notes</h1>
@@ -116,6 +122,7 @@ const App = () => {
         :
         <div>
           <p>{user.name} logged-in</p>
+          <button onClick={handleLogout}>Log-out</button>
           <Togglable buttonLabel="New note" ref={noteFormRef}>
             <NoteForm
               createNote={addNote}

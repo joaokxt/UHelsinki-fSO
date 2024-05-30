@@ -1,8 +1,7 @@
 import { useState } from 'react'
 
 const NoteForm = ({ createNote }) => {
-    const [newNote, setNewNote] = useState(''
-    )
+    const [newNote, setNewNote] = useState('')
 
     const addNote = (event) => {
         event.preventDefault() // Prevents default action of submission (like reloading)
