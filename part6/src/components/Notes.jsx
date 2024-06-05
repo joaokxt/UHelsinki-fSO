@@ -17,8 +17,14 @@ const Note = ({ note, handleClick }) => {
     // container component
 const Notes = () => {
     const dispatch = useDispatch
-    const notes = useSelector((state) => {
-        return state
+    const notes = useSelector(({ filter, notes }) => {
+        if(filter === 'ALL'){
+            return notes
+        }
+
+        return filter === 'IMPORTANT'
+            ? notes.filter(note => note.important)
+            : notes.filter(note => !note.important)
     })
 
     return (
